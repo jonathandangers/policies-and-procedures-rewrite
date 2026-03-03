@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KC Health Resource Finder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0D7377;
+    --teal-light: #14A0A5;
+    --teal-pale: #E8F6F6;
+    --amber: #F4A015;
+    --amber-light: #FDF3E0;
+    --red: #C0392B;
+    --bg: #F9FAFB;
+    --white: #FFFFFF;
+    --gray-50: #F3F4F6;
+    --gray-100: #E5E7EB;
+    --gray-300: #D1D5DB;
+    --gray-500: #6B7280;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --radius: 12px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08), 0 0 1px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 0 1px rgba(0,0,0,0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--gray-900);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--teal) 0%, #0A5A5D 100%);
+    color: white;
+    padding: 20px 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .header-icon {
+    width: 44px;
+    height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.35rem;
+    line-height: 1.2;
+    font-weight: 400;
+  }
+
+  header p.subtitle {
+    font-size: 0.78rem;
+    opacity: 0.8;
+    margin-top: 2px;
+    font-weight: 300;
+  }
+
+  /* SEARCH */
+  .search-bar {
+    position: relative;
+  }
+
+  .search-bar input {
+    width: 100%;
+    padding: 11px 16px 11px 42px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-size: 0.95rem;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    backdrop-filter: blur(4px);
+    transition: background 0.2s;
+  }
+
+  .search-bar input::placeholder { color: rgba(255,255,255,0.65); }
+  .search-bar input:focus { background: rgba(255,255,255,0.22); }
+
+  .search-icon {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.7;
+    font-size: 16px;
+  }
+
+  /* FILTERS */
+  .filters-section {
+    background: white;
+    border-bottom: 1px solid var(--gray-100);
+    padding: 12px 16px;
+    position: sticky;
+    top: 136px;
+    z-index: 90;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters-section::-webkit-scrollbar { display: none; }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: nowrap;
+    min-width: max-content;
+  }
+  .filter-row:last-child { margin-bottom: 0; }
+
+  .filter-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--gray-200, #E5E7EB);
+    background: white;
+    color: var(--gray-700);
+    font-size: 0.8rem;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .filter-chip:hover { border-color: var(--teal-light); color: var(--teal); }
+
+  .filter-chip.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: white;
+  }
+
+  .filter-chip.amber.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: white;
+  }
+
+  .filter-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    align-self: center;
+    margin-right: 2px;
+    flex-shrink: 0;
+  }
+
+  /* MAIN CONTENT */
+  main {
+    padding: 16px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* QUICK HELP BANNER */
+  .quick-help {
+    background: var(--amber-light);
+    border: 1.5px solid var(--amber);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .quick-help .icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+
+  .quick-help h3 {
+    font-size: 0.88rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .quick-help p {
+    font-size: 0.8rem;
+    color: var(--gray-700);
+    line-height: 1.4;
+  }
+
+  .helpline-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .helpline-pill {
+    background: var(--amber);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* SECTION TABS */
+  .section-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--gray-100);
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .section-tab {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--gray-500);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .section-tab.active {
+    background: white;
+    color: var(--teal);
+    font-weight: 600;
+    box-shadow: var(--shadow);
+  }
+
+  /* RESULTS COUNT */
+  .results-meta {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .results-meta .clear-btn {
+    color: var(--teal);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.8rem;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  /* CLINIC CARD */
+  .clinic-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+    overflow: hidden;
+    border: 1px solid var(--gray-100);
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .clinic-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+
+  .card-header {
+    padding: 14px 16px 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .card-type-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .type-clinic { background: #E8F6F6; }
+  .type-dental { background: #FEF3C7; }
+  .type-mental { background: #EDE9FE; }
+  .type-pharmacy { background: #FCE7F3; }
+  .type-govt { background: #ECFDF5; }
+
+  .card-title-area { flex: 1; min-width: 0; }
+
+  .clinic-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--gray-900);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+
+  .clinic-location-line {
+    font-size: 0.78rem;
+    color: var(--gray-500);
+  }
+
+  .card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding: 0 16px 12px;
+  }
+
+  .badge {
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .badge-teal { background: var(--teal-pale); color: var(--teal); }
+  .badge-amber { background: var(--amber-light); color: #92400E; }
+  .badge-purple { background: #EDE9FE; color: #5B21B6; }
+  .badge-green { background: #ECFDF5; color: #065F46; }
+  .badge-red { background: #FEE2E2; color: #991B1B; }
+  .badge-gray { background: var(--gray-100); color: var(--gray-700); }
+
+  /* EXPANDED DETAILS */
+  .card-details {
+    display: none;
+    border-top: 1px solid var(--gray-100);
+    padding: 14px 16px;
+  }
+
+  .card-details.open { display: block; }
+
+  .detail-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.83rem;
+    align-items: flex-start;
+  }
+
+  .detail-row:last-child { margin-bottom: 0; }
+
+  .detail-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+  .detail-text { color: var(--gray-700); line-height: 1.45; }
+
+  .detail-text strong { color: var(--gray-900); font-weight: 600; }
+
+  .services-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 4px;
+  }
+
+  .service-tag {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200, #E5E7EB);
+    color: var(--gray-700);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+  }
+
+  .call-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s;
+  }
+
+  .call-btn:hover { background: var(--teal-light); }
+
+  .chevron {
+    font-size: 12px;
+    color: var(--gray-400, #9CA3AF);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .chevron.open { transform: rotate(180deg); }
+
+  /* SECTION DIVIDER */
+  .section-heading {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gray-500);
+    margin: 20px 0 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--gray-500);
+  }
+
+  .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 1rem; color: var(--gray-700); margin-bottom: 6px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* INFO CARDS */
+  .info-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--gray-100);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  .info-card h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .info-card p, .info-card li {
+    font-size: 0.83rem;
+    color: var(--gray-700);
+    line-height: 1.5;
+  }
+
+  .info-card ul { padding-left: 16px; }
+  .info-card li { margin-bottom: 4px; }
+
+  .program-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .program-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .program-icon { font-size: 20px; flex-shrink: 0; }
+
+  .program-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+  }
+
+  .program-desc {
+    font-size: 0.78rem;
+    color: var(--gray-500);
+    line-height: 1.4;
+  }
+
+  .program-link {
+    font-size: 0.78rem;
+    color: var(--teal);
+    font-weight: 600;
+    text-decoration: none;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 24px 16px;
+    font-size: 0.75rem;
+    color: var(--gray-400, #9CA3AF);
+    border-top: 1px solid var(--gray-100);
+    margin-top: 24px;
+  }
+
+  footer strong { color: var(--gray-500); }
+
+  /* MOBILE SAFE AREA */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+  }
+
+  /* NOTE CALLOUT */
+  .note {
+    background: #EFF6FF;
+    border-left: 3px solid #3B82F6;
+    padding: 10px 12px;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.78rem;
+    color: #1E40AF;
+    margin-bottom: 14px;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="header-icon">🏥</div>
+    <div>
+      <h1>KC Health Resource Finder</h1>
+      <p class="subtitle">Greater Kansas City · Safety Net Clinics &amp; Services</p>
+    </div>
+  </div>
+  <div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search by name, city, or service…" autocomplete="off">
+  </div>
+</header>
+
+<div class="filters-section">
+  <div class="filter-row">
+    <span class="filter-label">State</span>
+    <button class="filter-chip active" data-filter="state" data-value="all">All</button>
+    <button class="filter-chip" data-filter="state" data-value="MO">Missouri</button>
+    <button class="filter-chip" data-filter="state" data-value="KS">Kansas</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Need</span>
+    <button class="filter-chip" data-filter="service" data-value="adult">Adult Care</button>
+    <button class="filter-chip" data-filter="service" data-value="pediatrics">Kids</button>
+    <button class="filter-chip" data-filter="service" data-value="dental">Dental</button>
+    <button class="filter-chip" data-filter="service" data-value="mental">Mental Health</button>
+    <button class="filter-chip" data-filter="service" data-value="ob">OB/Prenatal</button>
+    <button class="filter-chip" data-filter="service" data-value="vision">Vision</button>
+    <button class="filter-chip" data-filter="service" data-value="hiv">HIV/STD</button>
+    <button class="filter-chip" data-filter="service" data-value="spanish">Spanish</button>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">Hours</span>
+    <button class="filter-chip amber" data-filter="hours" data-value="evening">Evenings</button>
+    <button class="filter-chip amber" data-filter="hours" data-value="weekend">Weekends</button>
+    <button class="filter-chip amber" data-filter="hours" data-value="walkin">Walk-ins</button>
+  </div>
+</div>
+
+<main>
+
+  <div class="quick-help">
+    <div class="icon">📞</div>
+    <div>
+      <h3>Free Helplines — Call Anytime</h3>
+      <p>Not sure where to go? These free lines can help you find care.</p>
+      <div class="helpline-pills">
+        <a href="tel:211" class="helpline-pill">📱 2-1-1 United Way</a>
+        <a href="tel:8162343188" class="helpline-pill">👶 Children's Mercy</a>
+        <a href="tel:18009326220" class="helpline-pill">🏥 Saint Luke's Nurse</a>
+        <a href="tel:9136767777" class="helpline-pill">💊 Shawnee Mission</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    ⚠️ <strong>Always call ahead</strong> — many clinics require appointments. Bring a photo ID. Fees are often based on income and may be free or reduced.
+  </div>
+
+  <div class="section-tabs">
+    <button class="section-tab active" data-tab="clinics">🏥 Clinics</button>
+    <button class="section-tab" data-tab="programs">📋 Programs</button>
+    <button class="section-tab" data-tab="rx">💊 Prescriptions</button>
+  </div>
+
+  <!-- CLINICS TAB -->
+  <div id="tab-clinics">
+    <div class="results-meta">
+      <span id="resultsCount">Loading…</span>
+      <button class="clear-btn" id="clearFilters" style="display:none">Clear filters ✕</button>
+    </div>
+    <div id="clinicList"></div>
+  </div>
+
+  <!-- PROGRAMS TAB -->
+  <div id="tab-programs" style="display:none">
+
+    <div class="section-heading">🇺🇸 Missouri Programs</div>
+    <div class="info-card">
+      <h3>💙 MO HealthNet for Kids (MHK)</h3>
+      <p>Missouri's health insurance for children under 19. Often <strong>free or very low cost</strong> based on household income. No deductibles or co-pays for most families.</p>
+      <div class="program-row" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--gray-100)">
+        <div class="program-icon">📞</div>
+        <div>
+          <div class="program-name">Apply or Get Help</div>
+          <div class="program-desc">Call toll-free or apply online. Applications available in English, Spanish, Bosnian, Vietnamese.</div>
+          <a href="tel:18882755908" class="program-link">📞 1-888-275-5908</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">⚖️</div>
+        <div>
+          <div class="program-name">Legal Aid — MHK Advocacy</div>
+          <div class="program-desc">Free legal help if your child's MHK application was rejected or coverage was terminated.</div>
+          <a href="tel:8164746750" class="program-link">📞 816-474-6750</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">👩‍🍼</div>
+        <div>
+          <div class="program-name">MO HealthNet for Pregnant Women / Families</div>
+          <div class="program-desc">Also available for pregnant women and low-income parents. Contact the same number.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>📍 Missouri Family Support Division Offices</h3>
+      <p style="margin-bottom:10px">Apply for MHK in person at your local office:</p>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Bates County</div><div class="program-desc">4 West Ohio St, Butler · <a href="tel:6606793174" style="color:var(--teal)">660-679-3174</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Cass County</div><div class="program-desc">2500 E. Mechanic, Harrisonville · <a href="tel:8163803597" style="color:var(--teal)">816-380-3597</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Clay County</div><div class="program-desc">7000 Liberty Dr, Liberty · <a href="tel:8167818900" style="color:var(--teal)">816-781-8900</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Jackson County — Downtown</div><div class="program-desc">615 E. 13th St, Kansas City · <a href="tel:8168892500" style="color:var(--teal)">816-889-2500</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Jackson County — Midtown</div><div class="program-desc">4900 Swope Pkwy, KC · <a href="tel:8169297100" style="color:var(--teal)">816-929-7100</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Jackson County — Independence</div><div class="program-desc">201 E. Partridge St · <a href="tel:8163255800" style="color:var(--teal)">816-325-5800</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Lafayette County</div><div class="program-desc">736 State Route 13, Lexington · <a href="tel:6602592294" style="color:var(--teal)">660-259-2294</a></div></div></div>
+      <div class="program-row"><div class="program-icon">📍</div><div><div class="program-name">Platte County</div><div class="program-desc">233 Marshall Rd, Platte City · <a href="tel:8168583740" style="color:var(--teal)">816-858-3740</a></div></div></div>
+    </div>
+
+    <div class="section-heading">🌾 Kansas Programs</div>
+    <div class="info-card">
+      <h3>💙 Kansas HealthWave</h3>
+      <p>Children's insurance for Kansans who don't have access to affordable health insurance. Some families qualify for <strong>no premium</strong> coverage.</p>
+      <a href="tel:18007924884" class="program-link" style="display:inline-block; margin-top:8px">📞 1-800-792-4884</a>
+    </div>
+
+    <div class="section-heading">📱 For New Parents</div>
+    <div class="info-card">
+      <h3>👶 Text4baby</h3>
+      <p>Free weekly text messages about your pregnancy and your baby's first year of life.</p>
+      <p style="margin-top:8px"><strong>Text BABY to 511411</strong></p>
+    </div>
+
+  </div>
+
+  <!-- RX TAB -->
+  <div id="tab-rx" style="display:none">
+    <p class="note">Most programs below are <strong>free to join</strong> and require no prescription insurance. Income limits apply to some programs.</p>
+
+    <div class="info-card">
+      <div class="program-row" style="padding-top:0">
+        <div class="program-icon">💊</div>
+        <div>
+          <div class="program-name">Missouri RX</div>
+          <div class="program-desc">State prescription program for seniors and those with disabilities in Missouri.</div>
+          <a href="tel:18003751406" class="program-link">📞 1-800-375-1406</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">🏥</div>
+        <div>
+          <div class="program-name">KC Medicine Cabinet</div>
+          <div class="program-desc">Emergency prescription help, once per year. Household income under 200% federal poverty level. <strong>Call for appointment.</strong></div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px">
+            <a href="tel:8162310984" class="program-link" style="display:inline">📞 Bishop Sullivan: 816-231-0984</a>
+            <a href="tel:8167633277" class="program-link" style="display:inline">📞 Community Assistance: 816-763-3277</a>
+            <a href="tel:8162544100" class="program-link" style="display:inline">📞 Community Services League: 816-254-4100</a>
+          </div>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">💙</div>
+        <div>
+          <div class="program-name">Pfizer Connection to Care</div>
+          <div class="program-desc">No age limit. Income under $19,000/single or $31,000/family. Free or discounted Pfizer medications including Lipitor, Norvasc, Zoloft.</div>
+          <a href="tel:18667062400" class="program-link">📞 1-866-706-2400</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">🤝</div>
+        <div>
+          <div class="program-name">Together RX Access Card</div>
+          <div class="program-desc">Under 65 years old. Income under $30,000/single or $60,000/family. No prescription coverage required. 25–40% savings. <strong>Free card.</strong></div>
+          <a href="tel:18004444106" class="program-link">📞 1-800-444-4106</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">💉</div>
+        <div>
+          <div class="program-name">Merck Prescription Discount</div>
+          <div class="program-desc">For all uninsured patients regardless of age or income. Instant savings at the pharmacy counter. Also covers adult and children's vaccinations.</div>
+          <a href="tel:18005063725" class="program-link">📞 1-800-506-3725</a>
+        </div>
+      </div>
+      <div class="program-row">
+        <div class="program-icon">🛒</div>
+        <div>
+          <div class="program-name">ScriptSave WellRx</div>
+          <div class="program-desc">Not insurance — a savings card usable at 55,000+ pharmacies nationwide for brand name and generic drugs. Free to use.</div>
+          <a href="https://www.wellrx.com" class="program-link" target="_blank">🌐 wellrx.com</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <strong>Greater Kansas City Health Resource Guide</strong><br>
+  Originally produced by Cover the Uninsured Coalition · Please verify clinic hours &amp; services directly<br>
+  <span style="margin-top:4px; display:block">United Way 2-1-1 · <a href="tel:211" style="color:var(--teal)">Call 2-1-1</a> for personalized help finding care</span>
+</footer>
+
+<script>
+// =============================================
+// CLINIC DATA
+// =============================================
+const clinics = [
+  // ---- MISSOURI CLINICS ----
+  {
+    name: "Samuel U. Rodgers Health Center — Downtown",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "825 Euclid Ave, Kansas City, MO 64124",
+    phone: "816-474-4920",
+    hours: "Mon 7am–5pm; Tue/Thu/Fri 8am–5pm; Wed 7am–Noon",
+    services: ["adult","pediatrics","dental","ob","mental","vision","hiv","wic"],
+    languages: ["Spanish","Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health Central",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "3801 Blue Pkwy, Kansas City, MO 64130",
+    phone: "816-923-5800",
+    hours: "Mon–Fri 8:30am–5:30pm; Tue until 8pm. Urgent Care: Mon–Fri 8:30–11:30am & 1:30–4:30pm. After Hours: Mon–Fri 5–9pm.",
+    services: ["adult","pediatrics","dental","ob","mental","vision","hiv"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: true, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health Independence",
+    county: "Jackson", state: "MO", city: "Independence",
+    address: "1638 Hwy 24, Independence, MO 64050",
+    phone: "816-627-2000",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","dental","ob","mental"],
+    languages: ["Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health South",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "8825 Troost Ave, Kansas City, MO 64131",
+    phone: "816-922-7645",
+    hours: "Mon–Fri 8:30am–5:30pm",
+    services: ["adult","pediatrics","mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health Northland",
+    county: "Platte", state: "MO", city: "Riverside",
+    address: "4443 NW Gateway, Riverside, MO 64150",
+    phone: "816-627-2050",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","dental","ob","mental","vision","hiv"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Cabot Westside Health Center",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2121 Summit, Kansas City, MO 64109",
+    phone: "816-471-0900",
+    hours: "Mon–Fri 7:30am–4:30pm; Wed & Thu until 7pm. Urgent Care: Mon–Fri 7:30–9am. After Hours: Wed & Thu until 7pm; Sat 8am–1pm.",
+    services: ["adult","pediatrics","dental","ob","mental","vision","hiv","wic"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: true, evening: true, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Kansas City Free Health Clinic",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "3515 Broadway, Kansas City, MO 64111",
+    phone: "816-753-5144",
+    hours: "Mon–Thu 9am–9pm; Fri 9am–5pm; 3rd Sat 9am–1pm. After Hours (by appt): Mon/Tue/Thu 6–9pm.",
+    services: ["adult","pediatrics","mental","vision","hiv"],
+    languages: ["Spanish","Vietnamese"],
+    acceptsMedicaid: false, free: true, walkin: false, evening: true, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Kansas City Free Health Clinic — Eastside",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "5119 E. 24th St, Kansas City, MO 64127",
+    phone: "816-753-5144",
+    hours: "Varies — call ahead",
+    services: ["adult","pediatrics","mental","vision","hiv"],
+    languages: ["Spanish","Vietnamese"],
+    acceptsMedicaid: false, free: true, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Children's Mercy Pediatric & Specialty Clinics",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2401 Gillham Rd, Kansas City, MO 64108",
+    phone: "816-234-3188",
+    hours: "Mon–Fri 8am–5pm (some evening/weekend hours)",
+    services: ["pediatrics","ob"],
+    languages: ["Spanish","Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: true, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Children's Mercy Teen Clinic",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "4605 Paseo, Suite 200, Kansas City, MO 64110",
+    phone: "816-234-3050",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["pediatrics","ob","hiv"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Hope Family Care Center",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "3027 Prospect, Kansas City, MO 64128",
+    phone: "816-861-6500",
+    hours: "Tue–Sat 8:30am–Noon",
+    services: ["adult","pediatrics","ob","wic"],
+    languages: [],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Mercy & Truth Medical Missions — Raytown",
+    county: "Jackson", state: "MO", city: "Raytown",
+    address: "6303 Evanston Rd, Raytown, MO 64133",
+    phone: "816-356-4325",
+    hours: "Mon 1:15–4pm; Wed & Thu 8:30am–4pm; Sat 8am–Noon",
+    services: ["adult","pediatrics","mental","vision"],
+    languages: [],
+    acceptsMedicaid: false, free: true, walkin: false, evening: false, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Seton Center",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2816 E. 23rd, Kansas City, MO 64127",
+    phone: "816-231-3955",
+    hours: "Mon–Fri 8:30am–4pm",
+    services: ["adult","mental"],
+    languages: ["Spanish"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Shared Care Free Clinic of Jackson County",
+    county: "Jackson", state: "MO", city: "Independence",
+    address: "17611 E US-24 Hwy, Suite 103, Independence, MO 64056",
+    phone: "816-404-6455",
+    hours: "By appointment: Tue 6–9pm; Wed & Thu 8:30am–1pm",
+    services: ["adult","pediatrics"],
+    languages: [],
+    acceptsMedicaid: false, free: true, walkin: false, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Sojourner Health Clinic",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "205 E. 9th St, Kansas City, MO 64106",
+    phone: null,
+    hours: "Sunday Noon until last patient seen",
+    services: ["adult"],
+    languages: [],
+    acceptsMedicaid: false, free: true, walkin: true, evening: false, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "KCMO Public Health Department",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2400 Troost Ave, Kansas City, MO 64108",
+    phone: "816-513-6008",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","wic"],
+    languages: ["Spanish","Vietnamese"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Samuel U. Rodgers Clay County Health Center",
+    county: "Clay", state: "MO", city: "Liberty",
+    address: "800 Haines Dr, Liberty, MO 64068",
+    phone: "816-792-1575",
+    hours: "Tue–Thu 8am–5pm",
+    services: ["adult","pediatrics","wic"],
+    languages: ["Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Samuel U. Rodgers North Health Center",
+    county: "Clay", state: "MO", city: "Kansas City",
+    address: "4820A N. Oak Trafficway, Kansas City, MO 64118",
+    phone: "816-413-0662",
+    hours: "Mon & Fri 8am–5pm; Tue & Thu 8am–7pm; Wed 8am–Noon",
+    services: ["adult","pediatrics","wic"],
+    languages: ["Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Samuel U. Rodgers Independence Dental Clinic",
+    county: "Jackson", state: "MO", city: "Independence",
+    address: "620 W. 23rd St, Independence, MO 64055",
+    phone: "816-254-3382",
+    hours: "Mon–Fri 8:30am–5pm",
+    services: ["dental"],
+    languages: ["Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "dental"
+  },
+  {
+    name: "Samuel U. Rodgers Dental & Health Center — Lafayette",
+    county: "Lafayette", state: "MO", city: "Lexington",
+    address: "811-A S. Highway 13, Lexington, MO 64067",
+    phone: "660-259-3823",
+    hours: "Mon–Fri 8am–5pm; Wed 8am–Noon",
+    services: ["adult","dental","ob","vision"],
+    languages: ["Interpretive Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "dental"
+  },
+  {
+    name: "UMKC School of Dentistry Clinic",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "650 E. 25th St, Kansas City, MO 64108",
+    phone: "816-235-2100",
+    hours: "Call for current hours",
+    services: ["dental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    note: "Comprehensive dental at 1/3 to 1/2 the cost of private care. Accepts Missouri Medicaid.",
+    type: "dental"
+  },
+  {
+    name: "Lafayette County Health Department",
+    county: "Lafayette", state: "MO", city: "Lexington",
+    address: "547 S. 13 Hwy, Lexington, MO 64067",
+    phone: "660-259-4371",
+    hours: "Mon 1–4pm; Wed 8:30am–4pm; Last Tue 8:30am–7pm; non-clinic days by appt",
+    services: ["adult","pediatrics"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: true, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Platte County Health Dept — Parkville",
+    county: "Platte", state: "MO", city: "Parkville",
+    address: "1201 East St, Parkville, MO 64152",
+    phone: "816-587-5988",
+    hours: "Clinic: Mon/Tue/Fri 10am–4pm. Walk-In: Mon–Fri 8am–6pm.",
+    services: ["adult","pediatrics","vision"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: true, evening: false, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Platte County Health Dept — Platte City",
+    county: "Platte", state: "MO", city: "Platte City",
+    address: "212 Marshall Rd, Platte City, MO 64079",
+    phone: "816-858-2412",
+    hours: "Clinic: Thu 10am–4pm. Walk-In: Mon & Wed 8am–6pm.",
+    services: ["adult","pediatrics","vision"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: true, evening: false, weekend: false,
+    type: "govt"
+  },
+  // Mental Health MO
+  {
+    name: "Comprehensive Mental Health Services",
+    county: "Jackson", state: "MO", city: "Independence",
+    address: "10901 Winner Rd, Independence, MO 64052 (8 locations)",
+    phone: "816-254-3652",
+    hours: "Call for hours",
+    services: ["mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+  {
+    name: "ReDiscover Mental Health",
+    county: "Jackson", state: "MO", city: "Multiple",
+    address: "901 NE Independence, Lee's Summit | 6801 E. 117th St, KC | 620 E. 18th St, KC",
+    phone: "816-966-0900",
+    hours: "Call for hours",
+    services: ["mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+  {
+    name: "TMC Behavioral Health",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2211 Charlotte St, Kansas City, MO 64108 (9 locations)",
+    phone: "816-404-5700",
+    hours: "Call for hours",
+    services: ["mental","adult"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+  {
+    name: "Tri-County Mental Health Services",
+    county: "Clay", state: "MO", city: "Kansas City",
+    address: "3100 NE 83rd St, Kansas City, MO 64119 (6 locations)",
+    phone: "816-468-0400",
+    hours: "Call for hours",
+    services: ["mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+  {
+    name: "Samuel U. Rodgers South Therapeutic — Substance Abuse",
+    county: "Jackson", state: "MO", city: "Kansas City",
+    address: "2701 E. 31st St, Kansas City, MO 64127",
+    phone: "816-861-7070",
+    hours: "Mon–Fri 8:30am–5pm",
+    services: ["mental","adult"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+
+  // ---- KANSAS CLINICS ----
+  {
+    name: "Southwest Boulevard Family Health Care Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "300 Southwest Blvd, Kansas City, KS 66103",
+    phone: "913-722-3100",
+    hours: "Mon–Fri 9am–5pm; Thu until 7pm; Sat 9am–Noon. After Hours: Mon–Thu 3–6pm (Q Clinic).",
+    services: ["adult","pediatrics","dental","ob","mental","hiv"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: true, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Duchesne Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "636 Tauromee, Kansas City, KS 66101",
+    phone: "913-321-2626",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","ob","mental","hiv"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health — Wyandotte",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "21 N. 12th St, Suite 400, Kansas City, KS 66102",
+    phone: "816-922-7600",
+    hours: "Mon–Fri 8:30am–5:30pm",
+    services: ["adult","pediatrics","dental","ob","mental"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Swope Health — West",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "6013 Leavenworth Rd, Kansas City, KS 66104",
+    phone: "913-321-2200",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","mental"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "JayDoc Free Health Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "340 Southwest Blvd, Kansas City, KS 66103",
+    phone: "913-387-1202",
+    hours: "Mon & Wed: arrive by 5pm. Tue (by appt): Diabetes, Women's Health, PT 5–9pm.",
+    services: ["adult","pediatrics"],
+    languages: ["Language Line"],
+    acceptsMedicaid: false, free: true, walkin: true, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Turner House Children's Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "21 N. 12th St, Suite 300, Kansas City, KS 66102",
+    phone: "913-342-2552",
+    hours: "Mon–Fri 8am–5pm; Tue & Thu until 8pm; Sat 8am–Noon",
+    services: ["pediatrics","ob"],
+    languages: ["Spanish"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: true, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Silver City Health Center",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "1428 S. 32nd, Kansas City, KS 66106",
+    phone: "913-945-7300",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","ob","mental","hiv"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Children's Mercy West / Cordell Meeks Jr. Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "4313 State Ave, Kansas City, KS 66102",
+    phone: "913-233-4400",
+    hours: "Mon–Fri 8am–5pm; Sat 9am–Noon",
+    services: ["pediatrics"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: true,
+    type: "clinic"
+  },
+  {
+    name: "Mercy & Truth Medical Missions — Wellness Center",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "721 N. 31st St, Kansas City, KS 66103",
+    phone: "913-621-0074",
+    hours: "Tue & Thu 8:30am–4pm",
+    services: ["adult","dental","mental","vision"],
+    languages: ["Spanish"],
+    acceptsMedicaid: false, free: true, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Wyandotte County Public Health — Clinical Services",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "619 Ann Ave, Kansas City, KS 66101",
+    phone: "913-573-8855",
+    hours: "Mon–Fri 8:30am–5pm; some Thu evening services",
+    services: ["adult","pediatrics","wic"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: true, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Swope Health Wyandotte Dental Clinic",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "21 N. 12th St, Suite 475, Kansas City, KS 66102",
+    phone: "816-922-3111",
+    hours: "Mon–Fri 8:30am–5:30pm",
+    services: ["dental"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "dental"
+  },
+  {
+    name: "Health Partnership of Johnson County — Olathe",
+    county: "Johnson", state: "KS", city: "Olathe",
+    address: "807 S. Clairborne, Olathe, KS 66061",
+    phone: "913-393-9921",
+    hours: "Mon–Fri 8am–5pm",
+    services: ["adult","pediatrics","ob","mental","hiv"],
+    languages: ["Spanish","Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Health Partnership of Johnson County — Overland Park",
+    county: "Johnson", state: "KS", city: "Overland Park",
+    address: "7171 W. 95th St, Suite 100, Overland Park, KS 66212",
+    phone: "913-648-2266",
+    hours: "Mon–Fri 8am–5pm. After Hours: Thu 5–9pm (by appt).",
+    services: ["adult","pediatrics","ob"],
+    languages: ["Language Line"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Mercy & Truth Medical Missions — Shawnee",
+    county: "Johnson", state: "KS", city: "Shawnee",
+    address: "5817 Nieman Rd, Shawnee, KS 66203",
+    phone: "913-248-9965",
+    hours: "Mon & Fri 8:30am–4pm; Tue & Thu 8:30am–6pm; Wed 8:30am–4pm",
+    services: ["adult","dental","mental","vision"],
+    languages: [],
+    acceptsMedicaid: false, free: true, walkin: false, evening: true, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Johnson County Health Department — Mission",
+    county: "Johnson", state: "KS", city: "Mission",
+    address: "6000 Lamar, Mission, KS 66202",
+    phone: "913-826-1200",
+    hours: "Mon–Fri, times vary — call or check website",
+    services: ["adult","wic"],
+    languages: ["Language Line"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Johnson County Health Department — Olathe",
+    county: "Johnson", state: "KS", city: "Olathe",
+    address: "11875 S. Sunset Dr, Suite 300, Olathe, KS 66061",
+    phone: "913-826-1200",
+    hours: "Mon–Fri, times vary — call or check website",
+    services: ["adult","wic"],
+    languages: ["Language Line"],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: false,
+    type: "govt"
+  },
+  {
+    name: "Saint Vincent Clinic",
+    county: "Leavenworth", state: "KS", city: "Leavenworth",
+    address: "818 N. 7th St, Leavenworth, KS 66048",
+    phone: "913-651-8860",
+    hours: "Mon–Fri 7:45am–4:45pm",
+    services: ["adult","pediatrics","ob"],
+    languages: ["Spanish"],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "clinic"
+  },
+  {
+    name: "Johnson County Community College Dental Clinic",
+    county: "Johnson", state: "KS", city: "Overland Park",
+    address: "12345 College Blvd, Science Bldg Rm 201, Overland Park, KS 66210",
+    phone: "913-469-3808",
+    hours: "Call for current hours",
+    services: ["dental"],
+    languages: [],
+    acceptsMedicaid: false, free: false, walkin: false, evening: false, weekend: false,
+    type: "dental"
+  },
+  // Mental Health KS
+  {
+    name: "Johnson County Mental Health Center",
+    county: "Johnson", state: "KS", city: "Mission",
+    address: "6000 Lamar, Mission, KS 66202 (6 locations)",
+    phone: "913-831-2550",
+    hours: "Call for hours",
+    services: ["mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  },
+  {
+    name: "Wyandot Center for Community Behavioral Health",
+    county: "Wyandotte", state: "KS", city: "Kansas City",
+    address: "7840 Washington Ave, Kansas City, KS 66112 (3 locations)",
+    phone: "913-328-4600",
+    hours: "Call for hours",
+    services: ["mental"],
+    languages: [],
+    acceptsMedicaid: true, free: false, walkin: false, evening: false, weekend: false,
+    type: "mental"
+  }
+];
+
+// =============================================
+// STATE
+// =============================================
+let activeFilters = { state: 'all', service: null, hours: null };
+let searchQuery = '';
+let activeTab = 'clinics';
+
+// =============================================
+// RENDER
+// =============================================
+function getTypeEmoji(type) {
+  const map = { clinic: '🏥', dental: '🦷', mental: '🧠', pharmacy: '💊', govt: '🏛️' };
+  return map[type] || '🏥';
+}
+
+function getTypeClass(type) {
+  const map = { clinic: 'type-clinic', dental: 'type-dental', mental: 'type-mental', pharmacy: 'type-pharmacy', govt: 'type-govt' };
+  return map[type] || 'type-clinic';
+}
+
+function getServiceLabel(key) {
+  const map = { adult: 'Adult Care', pediatrics: 'Pediatrics', dental: 'Dental', mental: 'Mental Health', ob: 'OB/Prenatal', vision: 'Vision', hiv: 'HIV/STD', wic: 'WIC', spanish: 'Spanish' };
+  return map[key] || key;
+}
+
+function matchesFilters(c) {
+  if (activeFilters.state !== 'all' && c.state !== activeFilters.state) return false;
+  if (activeFilters.service) {
+    if (activeFilters.service === 'spanish') {
+      if (!c.languages.some(l => l.toLowerCase().includes('spanish'))) return false;
+    } else {
+      if (!c.services.includes(activeFilters.service)) return false;
+    }
+  }
+  if (activeFilters.hours === 'evening' && !c.evening) return false;
+  if (activeFilters.hours === 'weekend' && !c.weekend) return false;
+  if (activeFilters.hours === 'walkin' && !c.walkin) return false;
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    const text = [c.name, c.city, c.county, c.address, ...c.services.map(getServiceLabel), ...c.languages].join(' ').toLowerCase();
+    if (!text.includes(q)) return false;
+  }
+  return true;
+}
+
+function renderClinics() {
+  const filtered = clinics.filter(matchesFilters);
+  const list = document.getElementById('clinicList');
+  const countEl = document.getElementById('resultsCount');
+  const clearBtn = document.getElementById('clearFilters');
+
+  const hasFilters = activeFilters.state !== 'all' || activeFilters.service || activeFilters.hours || searchQuery;
+  clearBtn.style.display = hasFilters ? 'block' : 'none';
+
+  countEl.textContent = `${filtered.length} clinic${filtered.length !== 1 ? 's' : ''} found`;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">🔍</div>
+        <h3>No clinics found</h3>
+        <p>Try adjusting your filters or search term.<br>Call 2-1-1 for personalized help.</p>
+      </div>`;
+    return;
+  }
+
+  // Group by state then county
+  const groups = {};
+  filtered.forEach(c => {
+    const key = `${c.state}-${c.county}`;
+    if (!groups[key]) groups[key] = { label: `${c.county} County, ${c.state === 'MO' ? 'Missouri' : 'Kansas'}`, clinics: [] };
+    groups[key].clinics.push(c);
+  });
+
+  list.innerHTML = Object.entries(groups).sort(([a],[b]) => a.localeCompare(b)).map(([key, grp]) => `
+    <div class="section-heading">📍 ${grp.label}</div>
+    ${grp.clinics.map(c => renderCard(c)).join('')}
+  `).join('');
+
+  // Bind toggles
+  list.querySelectorAll('.card-header').forEach(h => {
+    h.addEventListener('click', () => {
+      const card = h.closest('.clinic-card');
+      const details = card.querySelector('.card-details');
+      const chevron = h.querySelector('.chevron');
+      const isOpen = details.classList.contains('open');
+      details.classList.toggle('open', !isOpen);
+      chevron.classList.toggle('open', !isOpen);
+    });
+  });
+}
+
+function renderCard(c) {
+  const badges = [];
+  if (c.free) badges.push('<span class="badge badge-green">Free</span>');
+  if (c.acceptsMedicaid) badges.push('<span class="badge badge-teal">Accepts Medicaid</span>');
+  if (c.walkin) badges.push('<span class="badge badge-amber">Walk-ins</span>');
+  if (c.evening) badges.push('<span class="badge badge-purple">Evening Hours</span>');
+  if (c.weekend) badges.push('<span class="badge badge-purple">Weekends</span>');
+  if (c.languages.some(l => l.toLowerCase().includes('spanish'))) badges.push('<span class="badge badge-teal">🌎 Spanish</span>');
+
+  const serviceLabels = c.services.map(s => `<span class="service-tag">${getServiceLabel(s)}</span>`).join('');
+  const langText = c.languages.length ? c.languages.join(', ') : 'English only';
+
+  const callBtn = c.phone
+    ? `<a href="tel:${c.phone.replace(/[^0-9]/g,'')}" class="call-btn">📞 Call ${c.phone}</a>`
+    : '';
+
+  const noteHtml = c.note ? `<div class="detail-row"><div class="detail-icon">ℹ️</div><div class="detail-text">${c.note}</div></div>` : '';
+
+  return `
+    <div class="clinic-card">
+      <div class="card-header">
+        <div class="card-type-icon ${getTypeClass(c.type)}">${getTypeEmoji(c.type)}</div>
+        <div class="card-title-area">
+          <div class="clinic-name">${c.name}</div>
+          <div class="clinic-location-line">${c.city}, ${c.state} · ${c.county} County</div>
+        </div>
+        <div class="chevron">▼</div>
+      </div>
+      <div class="card-badges">
+        ${badges.join('')}
+      </div>
+      <div class="card-details">
+        <div class="detail-row">
+          <div class="detail-icon">📍</div>
+          <div class="detail-text">${c.address}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">⏰</div>
+          <div class="detail-text">${c.hours}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">🌐</div>
+          <div class="detail-text">${langText}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-icon">🩺</div>
+          <div class="detail-text">
+            <div class="services-grid">${serviceLabels}</div>
+          </div>
+        </div>
+        ${noteHtml}
+        ${callBtn}
+      </div>
+    </div>`;
+}
+
+// =============================================
+// EVENT HANDLERS
+// =============================================
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const filterType = btn.dataset.filter;
+    const value = btn.dataset.value;
+
+    if (filterType === 'state') {
+      document.querySelectorAll('[data-filter="state"]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilters.state = value;
+    } else if (filterType === 'service') {
+      if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        activeFilters.service = null;
+      } else {
+        document.querySelectorAll('[data-filter="service"]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilters.service = value;
+      }
+    } else if (filterType === 'hours') {
+      if (btn.classList.contains('active')) {
+        btn.classList.remove('active');
+        activeFilters.hours = null;
+      } else {
+        document.querySelectorAll('[data-filter="hours"]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilters.hours = value;
+      }
+    }
+    renderClinics();
+  });
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  renderClinics();
+});
+
+document.getElementById('clearFilters').addEventListener('click', () => {
+  activeFilters = { state: 'all', service: null, hours: null };
+  searchQuery = '';
+  document.getElementById('searchInput').value = '';
+  document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-filter="state"][data-value="all"]').classList.add('active');
+  renderClinics();
+});
+
+document.querySelectorAll('.section-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const tabId = tab.dataset.tab;
+    document.getElementById('tab-clinics').style.display = tabId === 'clinics' ? 'block' : 'none';
+    document.getElementById('tab-programs').style.display = tabId === 'programs' ? 'block' : 'none';
+    document.getElementById('tab-rx').style.display = tabId === 'rx' ? 'block' : 'none';
+  });
+});
+
+// =============================================
+// INIT
+// =============================================
+renderClinics();
+</script>
+
+</body>
+</html>
